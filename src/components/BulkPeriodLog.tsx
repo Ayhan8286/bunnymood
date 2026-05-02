@@ -29,7 +29,7 @@ const BulkPeriodLog: React.FC<BulkPeriodLogProps> = ({ onSave, onClose }) => {
     if (valid.length === 0) return;
     onSave(valid.map(r => ({
       id: crypto.randomUUID(),
-      startDate: new Date(r.startDate),
+      startDate: new Date(r.startDate + 'T00:00:00'),
       duration: Number(r.duration),
     })));
     onClose();

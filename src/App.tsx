@@ -14,6 +14,7 @@ import BunnyAI from './components/AIInsights';
 import JournalSheet from './components/JournalSheet';
 import JournalCard from './components/JournalCard';
 import PhaseGuide from './components/PhaseGuide';
+import Calendar from './components/Calendar';
 import AnimatedBackground from './components/AnimatedBackground';
 import { Home, BookOpen, Heart, LogOut, Trash2 } from 'lucide-react';
 
@@ -188,6 +189,7 @@ function App() {
             {/* Col 1 — Cycle dashboard */}
             <div className="home-col-left">
               <Dashboard stats={stats} onOpenLog={() => setIsLogOpen(true)} />
+              <Calendar stats={stats} />
               <PhaseGuide stats={stats} view="her" ctx={buildCtx()} />
             </div>
 
