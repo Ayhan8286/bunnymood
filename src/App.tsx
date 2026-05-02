@@ -251,7 +251,7 @@ function App() {
                     <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.65rem 0.8rem', background: 'linear-gradient(90deg,#fff0f5,#fff8fb)', borderRadius: 14, border: '1.5px solid var(--rose-light)' }}>
                       <span style={{ fontSize: '1rem', flexShrink: 0 }}>🩸</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontWeight: 700, fontSize: '0.86rem' }}>{fmtFull(e.startDate.toISOString().split('T')[0])}</p>
+                        <p style={{ fontWeight: 700, fontSize: '0.86rem' }}>{fmtFull(getLocalDateString(e.startDate))}</p>
                         <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{e.duration} days</p>
                       </div>
                       <button
