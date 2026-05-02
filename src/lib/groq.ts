@@ -21,7 +21,13 @@ export const askGroq = async (messages: GroqMessage[]): Promise<string> => {
 };
 
 // ─── Daily localStorage cache ─────────────────────────────────
-const today = () => new Date().toISOString().split('T')[0];
+const getLocalDateString = (d: Date = new Date()) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+const today = () => getLocalDateString();
 
 const lsGet = (key: string): string | null => {
   try {
@@ -119,7 +125,7 @@ const buildContext = (ctx: UserContext): string => {
   } else {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 21);
-    const cutoffStr = cutoff.toISOString().split('T')[0];
+    const cutoffStr = getLocalDateString(cutoff);
 
     const recent = ctx.allMoodLogs.filter(l => l.date >= cutoffStr);
     const older  = ctx.allMoodLogs.filter(l => l.date < cutoffStr);

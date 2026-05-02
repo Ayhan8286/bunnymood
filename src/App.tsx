@@ -18,6 +18,13 @@ import Calendar from './components/Calendar';
 import AnimatedBackground from './components/AnimatedBackground';
 import { Home, BookOpen, Heart, LogOut, Trash2 } from 'lucide-react';
 
+const getLocalDateString = (d: Date = new Date()) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 function App() {
   const [user, setUser] = useState<AuthUser | null>(getSession());
   const [entries, setEntries] = useState<PeriodEntry[]>([]);
@@ -63,7 +70,7 @@ function App() {
   const handleAddEntries = async (newEntries: PeriodEntry[]) => {
     if (!user) return;
     await supabase.from('period_entries').insert(
-      newEntries.map(e => ({ user_name: user.name, start_date: e.startDate.toISOString().split('T')[0], duration: e.duration }))
+      newEntries.map(e => ({ user_name: user.name, start_date: getLocalDateString(e.startDate), duration: e.duration }))
     );
     const updated = [...newEntries, ...entries].sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
     setEntries(updated);
@@ -72,7 +79,7 @@ function App() {
 
   const handleAddMood = async (mood: string, symptoms: string[]) => {
     if (!user) return;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     await supabase.from('mood_logs').upsert(
       { user_name: user.name, log_date: today, mood, symptoms },
       { onConflict: 'user_name,log_date' }
@@ -85,7 +92,7 @@ function App() {
 
   const handleAddJournal = async (type: 'personal' | 'husband', content: string) => {
     if (!user) return;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     const { data } = await supabase.from('journals')
       .insert({ user_name: user.name, journal_date: today, entry_type: type, content })
       .select().single();
@@ -125,7 +132,7 @@ function App() {
     cycleDay: stats?.cycleDay ?? 1,
     avgCycleLength: stats?.averageCycleLength ?? 28,
     daysUntilNext: stats?.daysUntilNext ?? 0,
-    periodDates: entries.map(e => e.startDate.toISOString().split('T')[0]),
+    periodDates: entries.map(e => getLocalDateString(e.startDate)),
     allMoodLogs: moodLogs.map(l => ({ date: l.log_date, mood: l.mood, symptoms: l.symptoms ?? [] })),
     personalJournals: journals.filter(j => j.entry_type === 'personal').map(j => ({ date: j.journal_date, content: j.content })),
     husbandJournals: journals.filter(j => j.entry_type === 'husband').map(j => ({ date: j.journal_date, content: j.content })),
@@ -139,7 +146,7 @@ function App() {
     new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const fmtFull = (d: string) =>
     new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString();
   const todayMood = moodLogs.find(l => l.log_date === today);
   const displayName = user ? user.name.charAt(0).toUpperCase() + user.name.slice(1) : '';
 
