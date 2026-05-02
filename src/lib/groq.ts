@@ -20,6 +20,26 @@ export const askGroq = async (messages: GroqMessage[]): Promise<string> => {
   return data.choices[0].message.content as string;
 };
 
+export const askGroqJSON = async (messages: GroqMessage[]): Promise<any> => {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${GROQ_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ 
+      model: MODEL, 
+      messages, 
+      max_tokens: 1500, 
+      temperature: 0.7,
+      response_format: { type: "json_object" }
+    }),
+  });
+  if (!res.ok) throw new Error('Groq error');
+  const data = await res.json();
+  return JSON.parse(data.choices[0].message.content);
+};
+
 // ─── Daily localStorage cache ─────────────────────────────────
 const getLocalDateString = (d: Date = new Date()) => {
   const year = d.getFullYear();
@@ -56,13 +76,7 @@ export const clearAICache = () => {
   } catch {}
 };
 
-const dailyCached = async (key: string, fn: () => Promise<string>): Promise<string> => {
-  const ls = lsGet(key);
-  if (ls) return ls;
-  const text = await fn();
-  lsSet(key, text);
-  return text;
-};
+// Removed dailyCached as we now use lsGet/lsSet directly in getDailyAIProfile
 
 // ─── User context ─────────────────────────────────────────────
 export interface UserContext {
@@ -179,96 +193,54 @@ FORMAT: 2-4 sentences unless instructed otherwise. Warm, soft tone.
 `;
 
 // ─── 1. Phase insight ─────────────────────────────────────────
-export const getPhaseInsight = async (ctx: UserContext): Promise<string> => {
-  const key = `insight-${ctx.phase}-${ctx.cycleDay}-${ctx.allMoodLogs[0]?.mood ?? 'x'}`;
-  return dailyCached(key, () => askGroq([
-    { role: 'system', content: BASE_RULES },
-    {
-      role: 'user',
-      content: `Her data:\n${buildContext(ctx)}\n\nGive her a warm, personalised message for today based on her phase, mood signals, and any emotional themes from her journal. Be gentle and personal.`,
-    },
-  ]));
-};
+export interface DailyAIProfile {
+  insight: string;
+  calm: string;
+  patterns: string;
+  husbandTip: string;
+  herGuide: string[];
+  husbandGuide: string[];
+}
 
-// ─── 2. Calming message ────────────────────────────────────────
-export const getCalmingMessage = async (ctx: UserContext): Promise<string> => {
-  const latest = ctx.allMoodLogs[0]?.mood ?? null;
-  return askGroq([
-    { role: 'system', content: BASE_RULES },
-    {
-      role: 'user',
-      content: `Her data:\n${buildContext(ctx)}\n\n${latest ? `Her latest mood: ${latest}.` : ''} Give her a calming, loving message that acknowledges any emotional themes she's experiencing.`,
-    },
-  ]);
-};
-
-// ─── 3. Husband tip ────────────────────────────────────────────
-export const getHusbandTip = async (ctx: UserContext): Promise<string> => {
-  const key = `husband-${ctx.phase}-${ctx.cycleDay}-${ctx.allMoodLogs[0]?.mood ?? 'x'}`;
-  return dailyCached(key, () => askGroq([
-    {
-      role: 'system',
-      content: `${BASE_RULES}
-You are advising the HUSBAND specifically.
-If the journals suggest she's expressing desire or wanting intimacy (even during her period), guide him warmly — 
-"she may be wanting closeness right now" type of guidance. Gentle, tasteful, never explicit.`,
-    },
-    {
-      role: 'user',
-      content: `Data:\n${buildContext(ctx)}\n\nWhat should the husband do or say today to make her feel loved and understood? Use insights from journals if available.`,
-    },
-  ]));
-};
-
-// ─── 4. Pattern analysis ──────────────────────────────────────
-export const analyzePatterns = async (ctx: UserContext): Promise<string> => {
-  const hasData = ctx.allMoodLogs.length > 0
-    || ctx.periodDates.length >= 2
-    || ctx.personalJournals.length > 0
-    || ctx.husbandJournals.length > 0;
-
-  if (!hasData) {
-    return 'Not enough data yet 🐰 Keep logging your moods and feelings — I\'ll start finding patterns soon! 🌸';
+export const getDailyAIProfile = async (ctx: UserContext): Promise<DailyAIProfile> => {
+  // We use cycleDay, phase, and the latest mood/symptom length as cache invalidators
+  const key = `profile-${ctx.phase}-${ctx.cycleDay}-${ctx.allMoodLogs[0]?.mood ?? 'x'}-${ctx.allMoodLogs[0]?.symptoms?.length ?? 0}-${ctx.personalJournals.length}`;
+  
+  const rawCache = lsGet(key);
+  if (rawCache) {
+    try {
+      return JSON.parse(rawCache) as DailyAIProfile;
+    } catch {} // if parsing fails, fetch again
   }
 
-  return askGroq([
-    {
-      role: 'system',
-      content: `${BASE_RULES}
-You are analyzing patterns in her cycle, moods, symptoms, and emotional themes.
-Use ALL available data — cycle dates, moods, symptoms, AND journal themes.
-Identify real patterns: emotional patterns, physical patterns, desires, needs.
-Be warm, insightful, and personal. Do NOT quote journals verbatim.
-Synthesize themes — e.g. "you seem to crave emotional closeness during this phase".
-3-4 sentences. Be specific to her actual data, not generic.`,
-    },
-    {
-      role: 'user',
-      content: `Her data:\n${buildContext(ctx)}\n\nWhat meaningful patterns do you notice across her cycle, moods, and emotional themes? Be specific and insightful.`,
-    },
+  const hasData = ctx.allMoodLogs.length > 0 || ctx.periodDates.length >= 2 || ctx.personalJournals.length > 0 || ctx.husbandJournals.length > 0;
+  
+  const SYSTEM_PROMPT = `
+${BASE_RULES}
+You must return a SINGLE JSON object containing everything needed for her daily dashboard.
+IMPORTANT: You MUST return strictly valid JSON.
+
+JSON Schema required:
+{
+  "insight": "A warm, personalised message for today based on her phase, mood signals, and any emotional themes from her journal. Be gentle and personal. (2-4 sentences)",
+  "calm": "A calming, loving message that acknowledges any emotional themes she's experiencing right now. (2-3 sentences)",
+  "patterns": "${hasData ? `Analyze patterns in her cycle, moods, symptoms, and emotional themes. Synthesize themes gently.` : `Not enough data yet 🐰 Keep logging your moods and feelings — I will start finding patterns soon! 🌸`} (3-4 sentences)",
+  "husbandTip": "A tip specifically for the husband on what he should do or say today to make her feel loved. Gently guide him based on journals. (2-3 sentences)",
+  "herGuide": [ "Array of 4-5 practical self-care actions for HER today. Start each with an emoji." ],
+  "husbandGuide": [ "Array of 4-5 specific, actionable things the HUSBAND can do for her today. Start each with an emoji." ]
+}
+
+Rules for JSON payload:
+- Ensure all quotes are properly escaped.
+- Do NOT include any markdown blocks around the JSON.
+- Synthesize journal themes. Do not quote verbatim.
+`;
+
+  const data = await askGroqJSON([
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: `Her data:\n${buildContext(ctx)}\n\nGenerate the complete JSON DailyAIProfile.` }
   ]);
-};
 
-// ─── 5. AI Phase Guide — personalised daily ───────────────────
-export const getAIPhaseGuide = async (ctx: UserContext, view: 'her' | 'husband'): Promise<string> => {
-  const key = `guide-${view}-${ctx.phase}-${ctx.cycleDay}-${ctx.allMoodLogs[0]?.mood ?? 'x'}-${ctx.allMoodLogs[0]?.symptoms?.length ?? 0}`;
-
-  const systemHer = `${BASE_RULES}
-Generate a personalised self-care guide for her based on her phase, current mood/symptoms, and emotional themes from her journal.
-Give 4-5 practical actions for TODAY. Format as a list, one per line, starting with a relevant emoji.
-If journals suggest specific needs (like intimacy or emotional connection), address them sensitively in her self-care.`;
-
-  const systemHusband = `${BASE_RULES}
-Generate a personalised guide for the HUSBAND for today.
-Give 4-5 specific, actionable things he can do based on her phase, mood signals, and what her journal themes suggest she needs.
-Format as a list, one per line, starting with a relevant emoji.
-If she's expressed desire for intimacy or closeness in her journal (even during her period), gently include that as one point — tastefully worded.`;
-
-  return dailyCached(key, () => askGroq([
-    { role: 'system', content: view === 'her' ? systemHer : systemHusband },
-    {
-      role: 'user',
-      content: `Her data:\n${buildContext(ctx)}\n\nGenerate today's personalised guide for ${view === 'her' ? 'her' : 'her husband'}.`,
-    },
-  ]));
+  lsSet(key, JSON.stringify(data));
+  return data as DailyAIProfile;
 };

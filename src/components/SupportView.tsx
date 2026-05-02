@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { getSupportTips, type PredictionResult, type CyclePhase } from '../utils/cycleEngine';
-import { getHusbandTip, type UserContext } from '../lib/groq';
 
 const supportData: Record<CyclePhase, { emoji: string; title: string; color: string; bg: string }> = {
   Menstrual:  { emoji: '🫂', title: 'Be extra gentle with her',  color: '#e57373', bg: 'linear-gradient(135deg,#2b1a1f,#3d1f28)' },
@@ -11,24 +10,10 @@ const supportData: Record<CyclePhase, { emoji: string; title: string; color: str
 
 interface SupportViewProps {
   stats: PredictionResult | null;
-  ctx: UserContext;
+  tip?: string;
 }
 
-const SupportView: React.FC<SupportViewProps> = ({ stats, ctx }) => {
-  const [tip, setTip] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!stats) return;
-    setTip(''); // reset when phase changes
-    let cancelled = false;
-    setLoading(true);
-    getHusbandTip(ctx)
-      .then(t => { if (!cancelled) setTip(t); })
-      .catch(() => { if (!cancelled && stats) setTip(getSupportTips(stats.currentPhase)); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [stats?.currentPhase]);
+const SupportView: React.FC<SupportViewProps> = ({ stats, tip }) => {
 
   if (!stats) return null;
   const { currentPhase } = stats;
@@ -49,7 +34,7 @@ const SupportView: React.FC<SupportViewProps> = ({ stats, ctx }) => {
       </div>
 
       <div style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 14, padding: '0.9rem' }}>
-        {loading
+        {!tip
           ? <div style={{ display: 'flex', gap: 6 }}>{[0,1,2].map(i => <div key={i} style={{ width: 7, height: 7, borderRadius: '50%', background: 'rgba(255,255,255,0.5)', animation: `float ${0.5+i*0.15}s ease-in-out infinite alternate` }} />)}</div>
           : <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.87rem', lineHeight: 1.72, whiteSpace: 'pre-wrap' }}>{displayed}</p>
         }

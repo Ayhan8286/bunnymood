@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import type { PredictionResult, CyclePhase } from '../utils/cycleEngine';
-import { getAIPhaseGuide, type UserContext } from '../lib/groq';
 
 interface PhaseGuideProps {
   stats: PredictionResult | null;
   view: 'her' | 'husband';
-  ctx: UserContext;
+  guide?: string[];
 }
 
 const phaseColor: Record<CyclePhase, string> = {
@@ -21,9 +20,7 @@ const phaseEmoji: Record<CyclePhase, string> = {
   Menstrual: '🌸', Follicular: '🌱', Ovulation: '✨', Luteal: '🌙',
 };
 
-// Parse list items from AI response
-const parseLines = (text: string): string[] =>
-  text.split('\n').map(l => l.trim()).filter(l => l.length > 0 && l !== '-');
+// Parse list items from AI response (removed as guide is now an array)
 
 // Skeleton shimmer line
 const Skeleton = ({ width = '100%', height = 14 }: { width?: string; height?: number }) => (
@@ -36,41 +33,7 @@ const Skeleton = ({ width = '100%', height = 14 }: { width?: string; height?: nu
   }} />
 );
 
-const PhaseGuide: React.FC<PhaseGuideProps> = ({ stats, view, ctx }) => {
-  const [guide, setGuide] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    if (!stats) return;
-    // Reset if phase changed
-    setLoaded(false);
-    setGuide([]);
-  }, [stats?.currentPhase, view]);
-
-  useEffect(() => {
-    if (!stats || loaded) return;
-    let cancelled = false;
-
-    const load = async () => {
-      setLoading(true);
-      try {
-        const text = await getAIPhaseGuide(ctx, view);
-        if (!cancelled) {
-          setGuide(parseLines(text));
-          setLoaded(true);
-        }
-      } catch {
-        if (!cancelled) setGuide(['🐰 Could not load guide right now — try refreshing the page!']);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    load();
-    return () => { cancelled = true; };
-  }, [stats?.currentPhase, view, loaded]);
-
+const PhaseGuide: React.FC<PhaseGuideProps> = ({ stats, view, guide }) => {
   if (!stats) return null;
   const { currentPhase } = stats;
   const color = phaseColor[currentPhase];
@@ -87,7 +50,7 @@ const PhaseGuide: React.FC<PhaseGuideProps> = ({ stats, view, ctx }) => {
           background: `${color}18`, border: `2px solid ${color}44`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: '1.1rem',
-          boxShadow: `0 0 0 ${loading ? '6px' : '0px'} ${color}18`,
+          boxShadow: `0 0 0 ${!guide ? '6px' : '0px'} ${color}18`,
           transition: 'box-shadow 0.4s ease',
         }}>
           {phaseEmoji[currentPhase]}
@@ -109,7 +72,7 @@ const PhaseGuide: React.FC<PhaseGuideProps> = ({ stats, view, ctx }) => {
       </div>
 
       {/* Content */}
-      {loading ? (
+      {!guide ? (
         <div style={{ paddingTop: 4 }}>
           <Skeleton width="85%" />
           <Skeleton width="72%" />

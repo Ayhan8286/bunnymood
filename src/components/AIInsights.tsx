@@ -1,46 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Sparkles, Heart, TrendingUp } from 'lucide-react';
-import type { PredictionResult } from '../utils/cycleEngine';
-import { getPhaseInsight, getCalmingMessage, analyzePatterns, type UserContext } from '../lib/groq';
+import type { DailyAIProfile } from '../lib/groq';
 
 interface BunnyAIProps {
-  stats: PredictionResult | null;
-  ctx: UserContext;
+  profile: DailyAIProfile | null;
 }
 
 type Tab = 'insight' | 'calm' | 'patterns';
 
-const BunnyAI: React.FC<BunnyAIProps> = ({ stats, ctx }) => {
-  const [messages, setMessages] = useState<Record<Tab, string>>({ insight: '', calm: '', patterns: '' });
-  const [loading, setLoading] = useState<Tab | null>(null);
+const BunnyAI: React.FC<BunnyAIProps> = ({ profile }) => {
   const [activeTab, setActiveTab] = useState<Tab>('insight');
 
-  const load = async (tab: Tab, force = false) => {
-    if (messages[tab] && !force) { setActiveTab(tab); return; }
-    setLoading(tab);
-    setActiveTab(tab);
-    try {
-      let msg = '';
-      if (tab === 'insight') msg = await getPhaseInsight(ctx);
-      else if (tab === 'calm') msg = await getCalmingMessage(ctx);
-      else msg = await analyzePatterns(ctx);
-      setMessages(prev => ({ ...prev, [tab]: msg }));
-    } catch {
-      setMessages(prev => ({ ...prev, [tab]: 'Bunny is resting right now 🐰 try again in a moment!' }));
-    } finally {
-      setLoading(null);
-    }
-  };
+  const displayed = !profile 
+    ? '' 
+    : (activeTab === 'insight' ? profile.insight 
+     : activeTab === 'calm' ? profile.calm 
+     : profile.patterns);
 
-  // Auto-load insight on mount when stats are ready
-  useEffect(() => {
-    if (stats && !messages.insight) load('insight');
-  }, [stats?.currentPhase]);
-
-  if (!stats) return null;
-
-  const displayed = messages[activeTab];
-  const isLoading = loading === activeTab;
+  const isLoading = !profile;
 
   const tabs: { id: Tab; icon: React.ReactNode; label: string }[] = [
     { id: 'insight',  icon: <Sparkles size={13} />, label: "Today's vibe" },
@@ -71,8 +48,7 @@ const BunnyAI: React.FC<BunnyAIProps> = ({ stats, ctx }) => {
         {tabs.map(t => (
           <button
             key={t.id}
-            onClick={() => load(t.id)}
-            disabled={loading === t.id}
+            onClick={() => setActiveTab(t.id)}
             style={{
               flex: 1, padding: '0.42rem 0.2rem', fontSize: '0.7rem',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
@@ -81,6 +57,7 @@ const BunnyAI: React.FC<BunnyAIProps> = ({ stats, ctx }) => {
                 : 'none',
               boxShadow: activeTab === t.id ? 'var(--shadow-pink)' : 'none',
               color: activeTab === t.id ? 'white' : 'var(--text-muted)',
+              border: 'none', borderRadius: 50, fontWeight: 700,
             }}
           >
             {t.icon} {t.label}

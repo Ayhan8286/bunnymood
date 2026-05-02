@@ -3,8 +3,8 @@ import './App.css';
 import { supabase } from './lib/supabase';
 import { getSession, clearSession, type AuthUser } from './lib/auth';
 import { calculateCycleStats, type PeriodEntry, type PredictionResult } from './utils/cycleEngine';
-import { clearAICache } from './lib/groq';
-import type { UserContext } from './lib/groq';
+import type { UserContext, DailyAIProfile, clearAICache as _c } from './lib/groq';
+import { clearAICache, getDailyAIProfile } from './lib/groq';
 import Dashboard from './components/Dashboard';
 import SupportView from './components/SupportView';
 import BulkPeriodLog from './components/BulkPeriodLog';
@@ -31,6 +31,7 @@ function App() {
   const [moodLogs, setMoodLogs] = useState<any[]>([]);
   const [journals, setJournals] = useState<any[]>([]);
   const [stats, setStats] = useState<PredictionResult | null>(null);
+  const [aiProfile, setAiProfile] = useState<DailyAIProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null); // id being deleted
 
@@ -138,6 +139,13 @@ function App() {
     husbandJournals: journals.filter(j => j.entry_type === 'husband').map(j => ({ date: j.journal_date, content: j.content })),
   });
 
+  useEffect(() => {
+    if (!stats || !user || loading) return;
+    getDailyAIProfile(buildCtx())
+      .then(p => setAiProfile(p))
+      .catch(e => console.error('AI Profile fetch error:', e));
+  }, [stats, moodLogs, journals, user, loading]);
+
   const moodEmoji: Record<string, string> = {
     Happy: '😊', Calm: '😌', Sad: '😔', Energetic: '⚡',
     Tired: '😴', Sensitive: '🥺', Irritated: '😤', Loved: '🥰',
@@ -197,12 +205,12 @@ function App() {
             <div className="home-col-left">
               <Dashboard stats={stats} onOpenLog={() => setIsLogOpen(true)} />
               <Calendar stats={stats} />
-              <PhaseGuide stats={stats} view="her" ctx={buildCtx()} />
+              <PhaseGuide stats={stats} view="her" guide={aiProfile?.herGuide} />
             </div>
 
             {/* Col 2 — AI + mood + support */}
             <div className="home-col-right">
-              <BunnyAI stats={stats} ctx={buildCtx()} />
+              <BunnyAI profile={aiProfile} />
 
               <div className="card" style={{ textAlign: 'center', padding: '1rem 1.2rem' }}>
                 <p style={{ fontSize: '0.67rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: '0.55rem' }}>
@@ -219,13 +227,13 @@ function App() {
                 )}
               </div>
 
-              <SupportView stats={stats} ctx={buildCtx()} />
+              <SupportView stats={stats} tip={aiProfile?.husbandTip} />
             </div>
 
             {/* Col 3 — Journal + husband guide */}
             <div className="home-col-journal">
               <JournalCard journals={journals} onWrite={t => setJournalType(t)} />
-              <PhaseGuide stats={stats} view="husband" ctx={buildCtx()} />
+              <PhaseGuide stats={stats} view="husband" guide={aiProfile?.husbandGuide} />
             </div>
           </div>
         )}
