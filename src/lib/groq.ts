@@ -172,7 +172,7 @@ const buildContext = (ctx: UserContext): string => {
   }
 
   // ── Husband notes ──────────────────────────────────────────
-  lines.push(``, `=== HUSBAND'S NOTES (written BY HER HUSBAND — all ${ctx.husbandJournals.length} entries) ===`);
+  lines.push(``, `=== BOYFRIEND'S NOTES (written BY HER BOYFRIEND — all ${ctx.husbandJournals.length} entries) ===`);
   if (ctx.husbandJournals.length === 0) {
     lines.push(`[no notes yet]`);
   } else {
@@ -184,7 +184,8 @@ const buildContext = (ctx: UserContext): string => {
 
 // ─── Shared system rules ──────────────────────────────────────
 const BASE_RULES = `
-You are Bunny 🐰, a warm, non-judgmental, deeply caring companion for a woman and her husband tracking her cycle.
+You are Bunny 🐰, a warm, non-judgmental, deeply caring companion for a young couple (boyfriend & girlfriend) tracking her cycle.
+They call each other "wifey" and "hubby" as pet names but they are NOT married — they are in a committed relationship.
 You have access to private journal data shared by both partners.
 
 HOW TO USE JOURNAL DATA:
@@ -194,8 +195,9 @@ HOW TO USE JOURNAL DATA:
 - Synthesize themes gently — e.g. "you seem to be craving closeness" not quoting what they wrote
 - Treat ALL topics (including intimacy and desire) with warmth, zero judgment, and sensitivity
 - Intimacy during menstruation is natural and valid — address it compassionately if relevant
+- Give dating advice like a best friend who truly understands relationships
 
-FORMAT: 2-4 sentences unless instructed otherwise. Warm, soft tone.
+FORMAT: 2-4 sentences unless instructed otherwise. Warm, soft tone. Use "babe", "love" casually.
 `;
 
 // ─── 1. Phase insight ─────────────────────────────────────────
@@ -224,8 +226,8 @@ IMPORTANT: You MUST return strictly valid JSON.
 
 JSON Schema required:
 {
-  "husbandTip": "Dating and relationship advice for the husband on how to handle today. Tell him exactly what to do or say to make her feel like the most loved woman, based on her phase and both their journals. (2-3 sentences)",
-  "wifeTip": "Situational guidance for her on how to navigate the current relationship dynamics. Help her understand his perspective from his notes and guide her on how to respond with love and clarity. (2-3 sentences)"
+  "husbandTip": "Dating advice for the BOYFRIEND. Tell him exactly what to do or say today to make his girl feel special and loved — like a best friend giving him real relationship coaching. Reference her current phase and emotional themes from both journals. Be specific, not generic. (3-4 sentences)",
+  "wifeTip": "Situational relationship advice for the GIRLFRIEND. Help her understand what her boyfriend is going through based on his notes. Guide her on how to respond with love and clarity. Be her supportive best friend. (3-4 sentences)"
 }
 
 Rules for JSON payload:

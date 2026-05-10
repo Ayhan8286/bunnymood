@@ -63,7 +63,7 @@ const RelationshipCorner: React.FC<RelationshipCornerProps> = ({ stats, husbandT
           <span style={{ fontSize: '1.1rem' }}>{data.emoji}</span>
           <div>
             <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-              Husband's corner 💌
+              His corner 💌
             </p>
             <p style={{ fontSize: '0.78rem', color: 'white', fontWeight: 700 }}>{data.title}</p>
           </div>
