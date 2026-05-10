@@ -215,7 +215,7 @@ export const getDailyAIProfile = async (ctx: UserContext): Promise<DailyAIProfil
     } catch {} // if parsing fails, fetch again
   }
 
-  const hasData = ctx.allMoodLogs.length > 0 || ctx.periodDates.length >= 2 || ctx.personalJournals.length > 0 || ctx.husbandJournals.length > 0;
+
   
   const SYSTEM_PROMPT = `
 ${BASE_RULES}
