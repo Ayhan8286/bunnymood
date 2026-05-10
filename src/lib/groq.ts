@@ -206,7 +206,7 @@ export interface DailyAIProfile {
 
 export const getDailyAIProfile = async (ctx: UserContext): Promise<DailyAIProfile> => {
   // We use cycleDay, phase, and the latest mood/symptom length as cache invalidators
-  const key = `profile-${ctx.phase}-${ctx.cycleDay}-${ctx.allMoodLogs[0]?.mood ?? 'x'}-${ctx.allMoodLogs[0]?.symptoms?.length ?? 0}-${ctx.personalJournals.length}`;
+  const key = `profile-${ctx.phase}-${ctx.cycleDay}-${ctx.allMoodLogs[0]?.mood ?? 'x'}-${ctx.allMoodLogs[0]?.symptoms?.length ?? 0}-${ctx.personalJournals.length}-${ctx.husbandJournals.length}`;
   
   const rawCache = lsGet(key);
   if (rawCache) {
