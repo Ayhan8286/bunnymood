@@ -11,10 +11,8 @@ import WifeySupportView from './components/WifeySupportView';
 import BulkPeriodLog from './components/BulkPeriodLog';
 import MoodPicker from './components/MoodPicker';
 import LoginPage from './components/LoginPage';
-import BunnyAI from './components/AIInsights';
 import JournalSheet from './components/JournalSheet';
 import JournalCard from './components/JournalCard';
-import PhaseGuide from './components/PhaseGuide';
 import Calendar from './components/Calendar';
 import AnimatedBackground from './components/AnimatedBackground';
 import { Home, BookOpen, Heart, LogOut, Trash2 } from 'lucide-react';
@@ -215,15 +213,11 @@ function App() {
             <div className="home-col-left">
               <MonitoringSystem userName={user.name} />
               <Dashboard stats={stats} onOpenLog={() => setIsLogOpen(true)} />
-
               <Calendar stats={stats} />
-              <PhaseGuide stats={stats} view="her" guide={aiProfile?.herGuide} />
             </div>
 
-            {/* Col 2 — AI + mood + support */}
+            {/* Col 2 — Mood + Support */}
             <div className="home-col-right">
-              <BunnyAI profile={aiProfile} />
-
               <div className="card" style={{ textAlign: 'center', padding: '1rem 1.2rem' }}>
                 <p style={{ fontSize: '0.67rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: '0.55rem' }}>
                   Today's mood
@@ -243,10 +237,9 @@ function App() {
               <WifeySupportView stats={stats} tip={aiProfile?.wifeTip} />
             </div>
 
-            {/* Col 3 — Journal + husband guide */}
+            {/* Col 3 — Journal */}
             <div className="home-col-journal">
               <JournalCard journals={journals} onWrite={t => setJournalType(t)} />
-              <PhaseGuide stats={stats} view="husband" guide={aiProfile?.husbandGuide} />
             </div>
           </div>
         )}

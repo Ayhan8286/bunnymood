@@ -200,13 +200,8 @@ FORMAT: 2-4 sentences unless instructed otherwise. Warm, soft tone.
 
 // ─── 1. Phase insight ─────────────────────────────────────────
 export interface DailyAIProfile {
-  insight: string;
-  calm: string;
-  patterns: string;
   husbandTip: string;
   wifeTip: string;
-  herGuide: string[];
-  husbandGuide: string[];
 }
 
 export const getDailyAIProfile = async (ctx: UserContext): Promise<DailyAIProfile> => {
@@ -229,13 +224,8 @@ IMPORTANT: You MUST return strictly valid JSON.
 
 JSON Schema required:
 {
-  "insight": "A warm, personalised message for today based on her phase, mood signals, and any emotional themes from her journal. Be gentle and personal. (2-4 sentences)",
-  "calm": "A calming, loving message that acknowledges any emotional themes she's experiencing right now. (2-3 sentences)",
-  "patterns": "${hasData ? `Analyze patterns in her cycle, moods, symptoms, and emotional themes. Synthesize themes gently.` : `Not enough data yet 🐰 Keep logging your moods and feelings — I will start finding patterns soon! 🌸`} (3-4 sentences)",
   "husbandTip": "Dating and relationship advice for the husband on how to handle today. Tell him exactly what to do or say to make her feel like the most loved woman, based on her phase and both their journals. (2-3 sentences)",
-  "wifeTip": "Situational guidance for her on how to navigate the current relationship dynamics. Help her understand his perspective from his notes and guide her on how to respond with love and clarity. (2-3 sentences)",
-  "herGuide": [ "Array of 4-5 practical self-care actions for HER today. Start each with an emoji." ],
-  "husbandGuide": [ "Array of 4-5 specific, actionable things the HUSBAND can do for her today. Start each with an emoji." ]
+  "wifeTip": "Situational guidance for her on how to navigate the current relationship dynamics. Help her understand his perspective from his notes and guide her on how to respond with love and clarity. (2-3 sentences)"
 }
 
 Rules for JSON payload:
