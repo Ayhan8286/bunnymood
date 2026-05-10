@@ -106,7 +106,7 @@ const PhaseCard: React.FC<{ range: PhaseRange }> = ({ range }) => {
 const Dashboard: React.FC<DashboardProps> = ({ stats, onOpenLog, userName }) => {
   const [dbOk, setDbOk] = useState<boolean | null>(null);
   useEffect(() => {
-    supabase.from('period_entries').select('*', { count: 'exact', head: true }).eq('user_name', userName)
+    Promise.resolve(supabase.from('period_entries').select('*', { count: 'exact', head: true }).eq('user_name', userName))
       .then(() => setDbOk(true)).catch(() => setDbOk(false));
   }, [userName]);
 

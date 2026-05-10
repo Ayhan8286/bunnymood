@@ -1,5 +1,5 @@
 import React from 'react';
-import { getSupportTips, type PredictionResult, type CyclePhase } from '../utils/cycleEngine';
+import { type PredictionResult, type CyclePhase } from '../utils/cycleEngine';
 import { HeartHandshake } from 'lucide-react';
 
 const supportData: Record<CyclePhase, { emoji: string; title: string; color: string }> = {
