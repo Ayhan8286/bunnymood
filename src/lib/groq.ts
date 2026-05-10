@@ -101,17 +101,23 @@ const summariseMoodsByMonth = (
   for (const log of logs) {
     const month = log.date.slice(0, 7); // YYYY-MM
     if (!byMonth[month]) byMonth[month] = { moods: {}, symptoms: new Set() };
-    byMonth[month].moods[log.mood] = (byMonth[month].moods[log.mood] ?? 0) + 1;
+    
+    // Support multiple moods stored as "Happy, Calm"
+    const moodList = log.mood.split(',').map(m => m.trim()).filter(Boolean);
+    moodList.forEach(m => {
+      byMonth[month].moods[m] = (byMonth[month].moods[m] ?? 0) + 1;
+    });
+    
     log.symptoms.forEach(s => byMonth[month].symptoms.add(s));
   }
   return Object.entries(byMonth)
-    .sort(([a], [b]) => a.localeCompare(b))
+    .sort(([a], [b]) => b.localeCompare(a)) // show newest months first
     .map(([month, data]) => {
       const moodStr = Object.entries(data.moods)
         .sort((a, b) => b[1] - a[1])
         .map(([m, c]) => `${m}×${c}`)
         .join(', ');
-      const symStr = [...data.symptoms].slice(0, 4).join(', ');
+      const symStr = [...data.symptoms].slice(0, 6).join(', ');
       return `${month}: ${moodStr}${symStr ? ` | symptoms: ${symStr}` : ''}`;
     })
     .join('\n');
@@ -198,6 +204,7 @@ export interface DailyAIProfile {
   calm: string;
   patterns: string;
   husbandTip: string;
+  wifeTip: string;
   herGuide: string[];
   husbandGuide: string[];
 }
@@ -225,7 +232,8 @@ JSON Schema required:
   "insight": "A warm, personalised message for today based on her phase, mood signals, and any emotional themes from her journal. Be gentle and personal. (2-4 sentences)",
   "calm": "A calming, loving message that acknowledges any emotional themes she's experiencing right now. (2-3 sentences)",
   "patterns": "${hasData ? `Analyze patterns in her cycle, moods, symptoms, and emotional themes. Synthesize themes gently.` : `Not enough data yet 🐰 Keep logging your moods and feelings — I will start finding patterns soon! 🌸`} (3-4 sentences)",
-  "husbandTip": "A tip specifically for the husband on what he should do or say today to make her feel loved. Gently guide him based on journals. (2-3 sentences)",
+  "husbandTip": "Dating and relationship advice for the husband on how to handle today. Tell him exactly what to do or say to make her feel like the most loved woman, based on her phase and both their journals. (2-3 sentences)",
+  "wifeTip": "Situational guidance for her on how to navigate the current relationship dynamics. Help her understand his perspective from his notes and guide her on how to respond with love and clarity. (2-3 sentences)",
   "herGuide": [ "Array of 4-5 practical self-care actions for HER today. Start each with an emoji." ],
   "husbandGuide": [ "Array of 4-5 specific, actionable things the HUSBAND can do for her today. Start each with an emoji." ]
 }

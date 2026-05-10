@@ -7,6 +7,7 @@ import type { UserContext, DailyAIProfile, clearAICache as _c } from './lib/groq
 import { clearAICache, getDailyAIProfile } from './lib/groq';
 import Dashboard from './components/Dashboard';
 import SupportView from './components/SupportView';
+import WifeySupportView from './components/WifeySupportView';
 import BulkPeriodLog from './components/BulkPeriodLog';
 import MoodPicker from './components/MoodPicker';
 import LoginPage from './components/LoginPage';
@@ -17,6 +18,8 @@ import PhaseGuide from './components/PhaseGuide';
 import Calendar from './components/Calendar';
 import AnimatedBackground from './components/AnimatedBackground';
 import { Home, BookOpen, Heart, LogOut, Trash2 } from 'lucide-react';
+import MonitoringSystem from './components/MonitoringSystem';
+
 
 const getLocalDateString = (d: Date = new Date()) => {
   const year = d.getFullYear();
@@ -78,15 +81,16 @@ function App() {
     setStats(calculateCycleStats(updated));
   };
 
-  const handleAddMood = async (mood: string, symptoms: string[]) => {
+  const handleAddMood = async (moods: string[], symptoms: string[]) => {
     if (!user) return;
     const today = getLocalDateString();
+    const moodStr = moods.join(', ');
     await supabase.from('mood_logs').upsert(
-      { user_name: user.name, log_date: today, mood, symptoms },
+      { user_name: user.name, log_date: today, mood: moodStr, symptoms },
       { onConflict: 'user_name,log_date' }
     );
     setMoodLogs(prev => [
-      { id: crypto.randomUUID(), user_name: user.name, log_date: today, mood, symptoms },
+      { id: crypto.randomUUID(), user_name: user.name, log_date: today, mood: moodStr, symptoms },
       ...prev.filter(l => l.log_date !== today),
     ]);
   };
@@ -149,6 +153,12 @@ function App() {
   const moodEmoji: Record<string, string> = {
     Happy: '😊', Calm: '😌', Sad: '😔', Energetic: '⚡',
     Tired: '😴', Sensitive: '🥺', Irritated: '😤', Loved: '🥰',
+    Anxious: '🤔', Peaceful: '🧘', Overwhelmed: '🫠', Excited: '🤩',
+    Bored: '🥱', Social: '💃', Romantic: '🕯️', Reflective: '🌙',
+  };
+  const getMoodEmoji = (moodStr: string) => {
+    const primary = moodStr.split(',')[0].trim();
+    return moodEmoji[primary] ?? '💭';
   };
   const fmtDate = (d: string) =>
     new Date(d + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -203,7 +213,9 @@ function App() {
           <div className="home-grid animate-in">
             {/* Col 1 — Cycle dashboard */}
             <div className="home-col-left">
+              <MonitoringSystem userName={user.name} />
               <Dashboard stats={stats} onOpenLog={() => setIsLogOpen(true)} />
+
               <Calendar stats={stats} />
               <PhaseGuide stats={stats} view="her" guide={aiProfile?.herGuide} />
             </div>
@@ -221,13 +233,14 @@ function App() {
                 </button>
                 {todayMood && (
                   <p style={{ color: 'var(--text-light)', fontSize: '0.78rem', marginTop: '0.5rem', fontWeight: 600 }}>
-                    {moodEmoji[todayMood.mood] ?? '💭'} {todayMood.mood}
-                    {todayMood.symptoms?.length > 0 && ` · ${todayMood.symptoms.slice(0, 2).join(', ')}`}
+                    {getMoodEmoji(todayMood.mood)} {todayMood.mood}
+                    {todayMood.symptoms?.length > 0 && ` · ${todayMood.symptoms.slice(0, 3).join(', ')}`}
                   </p>
                 )}
               </div>
 
               <SupportView stats={stats} tip={aiProfile?.husbandTip} />
+              <WifeySupportView stats={stats} tip={aiProfile?.wifeTip} />
             </div>
 
             {/* Col 3 — Journal + husband guide */}
@@ -285,11 +298,11 @@ function App() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.48rem' }}>
                   {moodLogs.map(log => (
                     <div key={log.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0.65rem 0.8rem', background: 'linear-gradient(90deg,#f8f0ff,#fff8fb)', borderRadius: 14, border: '1.5px solid var(--lavender)' }}>
-                      <span style={{ fontSize: '1.2rem', flexShrink: 0 }}>{moodEmoji[log.mood] ?? '💭'}</span>
+                      <span style={{ fontSize: '1.2rem', flexShrink: 0 }}>{getMoodEmoji(log.mood)}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ fontWeight: 700, fontSize: '0.86rem' }}>{fmtDate(log.log_date)} — {log.mood}</p>
                         {log.symptoms?.length > 0 && (
-                          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{log.symptoms.slice(0, 3).join(', ')}</p>
+                          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{log.symptoms.slice(0, 4).join(', ')}</p>
                         )}
                       </div>
                       <button onClick={() => deleteMood(log.id)} disabled={deleting === log.id} style={delBtn(log.id)} title="Delete">
