@@ -6,8 +6,7 @@ import { calculateCycleStats, type PeriodEntry, type PredictionResult } from './
 import type { UserContext, DailyAIProfile } from './lib/groq';
 import { clearAICache, getDailyAIProfile } from './lib/groq';
 import Dashboard from './components/Dashboard';
-import SupportView from './components/SupportView';
-import WifeySupportView from './components/WifeySupportView';
+import RelationshipCorner from './components/RelationshipCorner';
 import BulkPeriodLog from './components/BulkPeriodLog';
 import MoodPicker from './components/MoodPicker';
 import LoginPage from './components/LoginPage';
@@ -16,7 +15,6 @@ import JournalCard from './components/JournalCard';
 import Calendar from './components/Calendar';
 import AnimatedBackground from './components/AnimatedBackground';
 import { Home, BookOpen, Heart, LogOut, Trash2 } from 'lucide-react';
-import MonitoringSystem from './components/MonitoringSystem';
 
 
 const getLocalDateString = (d: Date = new Date()) => {
@@ -211,11 +209,11 @@ function App() {
           <div className="home-grid animate-in">
             {/* Col 1 — Cycle dashboard + Calendar */}
             <div className="home-col-left">
-              <Dashboard stats={stats} onOpenLog={() => setIsLogOpen(true)} />
+              <Dashboard stats={stats} onOpenLog={() => setIsLogOpen(true)} userName={user.name} />
               <Calendar stats={stats} />
             </div>
 
-            {/* Col 2 — Mood + Husband's Corner + Journal */}
+            {/* Col 2 — Mood + Journal */}
             <div className="home-col-right">
               <div className="card" style={{ textAlign: 'center', padding: '1rem 1.2rem' }}>
                 <p style={{ fontSize: '0.67rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: '0.55rem' }}>
@@ -231,14 +229,12 @@ function App() {
                   </p>
                 )}
               </div>
-              <SupportView stats={stats} tip={aiProfile?.husbandTip} />
               <JournalCard journals={journals} onWrite={t => setJournalType(t)} />
             </div>
 
-            {/* Col 3 — Wifey's Corner + System Status */}
+            {/* Col 3 — Relationship Corner */}
             <div className="home-col-journal">
-              <WifeySupportView stats={stats} tip={aiProfile?.wifeTip} />
-              <MonitoringSystem userName={user.name} />
+              <RelationshipCorner stats={stats} husbandTip={aiProfile?.husbandTip} wifeTip={aiProfile?.wifeTip} />
             </div>
           </div>
         )}

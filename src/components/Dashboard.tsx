@@ -1,10 +1,13 @@
 import React from 'react';
 import { getPhaseDescription, type PredictionResult, type CyclePhase, type PhaseRange } from '../utils/cycleEngine';
-import { CalendarPlus } from 'lucide-react';
+import { CalendarPlus, CheckCircle2, AlertCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useState, useEffect } from 'react';
 
 interface DashboardProps {
   stats: PredictionResult | null;
   onOpenLog: () => void;
+  userName: string;
 }
 
 const phaseEmoji: Record<CyclePhase, string> = {
@@ -100,7 +103,13 @@ const PhaseCard: React.FC<{ range: PhaseRange }> = ({ range }) => {
   );
 };
 
-const Dashboard: React.FC<DashboardProps> = ({ stats, onOpenLog }) => {
+const Dashboard: React.FC<DashboardProps> = ({ stats, onOpenLog, userName }) => {
+  const [dbOk, setDbOk] = useState<boolean | null>(null);
+  useEffect(() => {
+    supabase.from('period_entries').select('*', { count: 'exact', head: true }).eq('user_name', userName)
+      .then(() => setDbOk(true)).catch(() => setDbOk(false));
+  }, [userName]);
+
   if (!stats) {
     return (
       <div className="card animate-in flex-center" style={{ flexDirection: 'column', textAlign: 'center', padding: '3rem 2rem', gap: '1rem' }}>
@@ -131,13 +140,20 @@ const Dashboard: React.FC<DashboardProps> = ({ stats, onOpenLog }) => {
         background: phaseBg[currentPhase],
         overflow: 'hidden', position: 'relative',
       }}>
-        {/* Active phase pill */}
-        <div style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: '1.2rem',
-          background: color + '22', color, border: `1.5px solid ${color}55`,
-          borderRadius: 50, padding: '5px 16px', fontSize: '0.78rem', fontWeight: 700,
-        }}>
-          {phaseEmoji[currentPhase]} {currentPhase} Phase
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.2rem' }}>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: color + '22', color, border: `1.5px solid ${color}55`,
+            borderRadius: 50, padding: '5px 16px', fontSize: '0.78rem', fontWeight: 700,
+          }}>
+            {phaseEmoji[currentPhase]} {currentPhase} Phase
+          </div>
+          {dbOk !== null && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: dbOk ? '#4caf50' : '#f44336' }}>
+              {dbOk ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
+              <span style={{ fontSize: '0.62rem', fontWeight: 600 }}>{dbOk ? 'Synced' : 'Offline'}</span>
+            </div>
+          )}
         </div>
 
         {/* SVG wheel */}
