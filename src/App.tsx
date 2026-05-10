@@ -3,7 +3,7 @@ import './App.css';
 import { supabase } from './lib/supabase';
 import { getSession, clearSession, type AuthUser } from './lib/auth';
 import { calculateCycleStats, type PeriodEntry, type PredictionResult } from './utils/cycleEngine';
-import type { UserContext, DailyAIProfile, clearAICache as _c } from './lib/groq';
+import type { UserContext, DailyAIProfile } from './lib/groq';
 import { clearAICache, getDailyAIProfile } from './lib/groq';
 import Dashboard from './components/Dashboard';
 import SupportView from './components/SupportView';

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Activity, Database, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Activity, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface MonitoringSystemProps {
   userName: string;
