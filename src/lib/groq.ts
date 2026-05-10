@@ -209,7 +209,7 @@ export interface DailyAIProfile {
 }
 
 export const getDailyAIProfile = async (ctx: UserContext): Promise<DailyAIProfile> => {
-  const key = `relationship-${ctx.phase}-${ctx.cycleDay}-${ctx.allMoodLogs[0]?.mood ?? 'x'}-${ctx.allMoodLogs[0]?.symptoms?.length ?? 0}-${ctx.personalJournals.length}-${ctx.husbandJournals.length}`;
+  const key = `coach-v2-${ctx.phase}-${ctx.cycleDay}-${ctx.allMoodLogs[0]?.mood ?? 'x'}-${ctx.allMoodLogs[0]?.symptoms?.length ?? 0}-${ctx.personalJournals.length}-${ctx.husbandJournals.length}`;
 
   const rawCache = lsGet(key);
   if (rawCache) {
