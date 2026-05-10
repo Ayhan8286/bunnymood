@@ -43,8 +43,8 @@ const MoodPicker: React.FC<MoodPickerProps> = ({ onSave, onClose }) => {
     setSelectedSymptoms(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
 
   return (
-    <div className="overlay" onClick={onClose}>
-      <div className="sheet" onClick={e => e.stopPropagation()}>
+    <div className="overlay" onClick={onClose} style={{ alignItems: 'flex-end' }}>
+      <div className="sheet" onClick={e => e.stopPropagation()} style={{ maxHeight: '92vh', overflowY: 'auto' }}>
         <div style={{ width: 40, height: 4, background: '#f4d0da', borderRadius: 10, margin: '0 auto 1.5rem' }} />
 
         <div className="flex-between" style={{ marginBottom: '1.25rem' }}>
@@ -58,7 +58,7 @@ const MoodPicker: React.FC<MoodPickerProps> = ({ onSave, onClose }) => {
         </div>
 
         {/* Mood grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.6rem', marginBottom: '1.5rem', maxHeight: '40vh', overflowY: 'auto', padding: '0.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.6rem', marginBottom: '1.5rem', padding: '0.5rem' }}>
           {moods.map(m => (
             <button
               key={m.name}
