@@ -209,14 +209,13 @@ function App() {
         {/* ═══ HOME ══════════════════════════════ */}
         {activeTab === 'home' && (
           <div className="home-grid animate-in">
-            {/* Col 1 — Cycle dashboard */}
+            {/* Col 1 — Cycle dashboard + Calendar */}
             <div className="home-col-left">
-              <MonitoringSystem userName={user.name} />
               <Dashboard stats={stats} onOpenLog={() => setIsLogOpen(true)} />
               <Calendar stats={stats} />
             </div>
 
-            {/* Col 2 — Mood + Support */}
+            {/* Col 2 — Mood + Husband's Corner + Journal */}
             <div className="home-col-right">
               <div className="card" style={{ textAlign: 'center', padding: '1rem 1.2rem' }}>
                 <p style={{ fontSize: '0.67rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: '0.55rem' }}>
@@ -232,14 +231,14 @@ function App() {
                   </p>
                 )}
               </div>
-
               <SupportView stats={stats} tip={aiProfile?.husbandTip} />
-              <WifeySupportView stats={stats} tip={aiProfile?.wifeTip} />
+              <JournalCard journals={journals} onWrite={t => setJournalType(t)} />
             </div>
 
-            {/* Col 3 — Journal */}
+            {/* Col 3 — Wifey's Corner + System Status */}
             <div className="home-col-journal">
-              <JournalCard journals={journals} onWrite={t => setJournalType(t)} />
+              <WifeySupportView stats={stats} tip={aiProfile?.wifeTip} />
+              <MonitoringSystem userName={user.name} />
             </div>
           </div>
         )}
